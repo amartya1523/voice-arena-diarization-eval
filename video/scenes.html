@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f6f5f1;--ink:#15171c;--muted:#636975;--line:#dfddd6;--accent:#1d4ed8;--s1:#1d4ed8;--s2:#d1495b;--s3:#e0a526;--s4:#15803d;--card:#fff}
+  *{box-sizing:border-box;margin:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Inter,sans-serif}
+  .scene{position:absolute;inset:0;padding:90px 150px 140px;opacity:0;display:flex;flex-direction:column;justify-content:center}
+  .serif{font-family:"Source Serif 4",serif;letter-spacing:-.015em}
+  .kicker{font-size:24px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:92px;line-height:1.04;margin:22px 0 26px}
+  h2{font-size:76px;line-height:1.08;margin:18px 0 40px}
+  .muted{color:var(--muted)}
+  .a{opacity:0}
+  .chip{display:inline-block;padding:16px 26px;border:2px solid var(--line);border-radius:16px;background:var(--card);font-size:33px;white-space:nowrap;font-weight:600;margin:0 14px 16px 0}
+  .chip small{display:block;font-size:24px;font-weight:500;color:var(--muted)}
+  .chip.on{border-color:var(--accent);background:#eaf0ff}
+  .card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:30px 34px}
+  .row{display:flex;gap:28px}
+  .lane{height:56px;border-radius:10px;background:#eceae4;position:relative;margin:14px 0}
+  .lane span{position:absolute;top:0;height:100%;border-radius:10px}
+  .lbl{font-size:28px;font-weight:600;width:150px;display:inline-block;color:var(--muted)}
+  .lanes .r{display:flex;align-items:center}
+  .lanes .lane{flex:1}
+  table{border-collapse:collapse;width:100%;font-size:33px}
+  td,th{padding:12px 18px;border-bottom:2px solid var(--line);text-align:left}
+  th{font-size:20px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .band{background:#e9ebef;border-radius:10px;padding:4px 14px;font-weight:700}
+  .formula{font-family:"Source Serif 4",serif;font-size:62px;background:var(--card);border-left:8px solid var(--accent);padding:28px 38px;border-radius:12px}
+  .big{font-size:180px;font-weight:800;letter-spacing:-.04em;line-height:1}
+  .check{font-size:40px;font-weight:600;margin:14px 0}
+  .check b{color:var(--s4)}
+  .bar{height:44px;border-radius:8px;background:var(--ink);position:relative}
+  .mono{font-family:"JetBrains Mono",monospace}
+  .footer{position:absolute;left:140px;right:140px;bottom:56px;display:flex;justify-content:space-between;font-size:22px;color:var(--muted)}
+  
+  .r6{display:grid;grid-template-columns:230px 1fr 110px;gap:18px;align-items:center;margin:18px 0;font-size:30px}
+  .b6{height:40px;background:#eceae4;border-radius:8px;overflow:hidden}.b6 i{display:block;height:100%}
+  .r6 b{text-align:right}
+  #progress{position:absolute;left:0;bottom:0;height:8px;background:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- S1 intro -->
+<div class="scene" data-scene="s1">
+  <div class="kicker a" data-at="0.1">Voice Arena · take-home · Question 1</div>
+  <h1 class="serif a" data-at="0.4">Who spoke when,<br>and can you trust the ranking?</h1>
+  <div class="a" data-cue="amartya" style="font-size:40px;font-weight:600">Amartya Singh <span class="muted" style="font-weight:500">· Final-year student, LNMIIT</span></div>
+  <div class="a lanes" data-cue="leaderboard" style="margin-top:70px;width:1300px">
+    <div class="r"><span class="lbl">Speaker 1</span><div class="lane"><span style="left:2%;width:22%;background:var(--s1)"></span><span style="left:52%;width:14%;background:var(--s1)"></span></div></div>
+    <div class="r"><span class="lbl">Speaker 2</span><div class="lane"><span style="left:22%;width:18%;background:var(--s2)"></span><span style="left:80%;width:16%;background:var(--s2)"></span></div></div>
+    <div class="r"><span class="lbl">Speaker 3</span><div class="lane"><span style="left:41%;width:9%;background:var(--s3)"></span><span style="left:66%;width:12%;background:var(--s3)"></span></div></div>
+  </div>
+</div>
+
+<!-- S2 problem -->
+<div class="scene" data-scene="s2">
+  <div class="kicker a" data-at="0">The problem</div>
+  <h2 class="serif a" data-cue="who">One leaderboard, very different buyers</h2>
+  <div class="row" style="margin-top:40px">
+    <div class="card a" data-cue="meeting" style="flex:1"><div style="font-size:42px;font-weight:700">Meeting-notes app</div><div class="muted" style="font-size:32px;margin-top:14px;line-height:1.35">3–10 people · laptop &amp; room mics · crosstalk · "yeah", "right"</div></div>
+    <div class="card a" data-cue="call" style="flex:1"><div style="font-size:42px;font-weight:700">Call centre</div><div class="muted" style="font-size:32px;margin-top:14px;line-height:1.35">2 speakers · 8 kHz phone codecs · hold music · agent vs customer</div></div>
+    <div class="card a" data-cue="medical" style="flex:1"><div style="font-size:42px;font-weight:700">Medical scribe</div><div class="muted" style="font-size:32px;margin-top:14px;line-height:1.35">doctor, patient, family · quiet short answers · errors are costly</div></div>
+  </div>
+  <div class="a" data-cue="once" style="margin-top:56px;font-size:44px;font-weight:700">One number → <span style="color:var(--s2)">the wrong choice for most of them.</span></div>
+</div>
+
+<!-- S3 tracks + bands -->
+<div class="scene" data-scene="s3">
+  <div class="kicker a" data-at="0">Choice 1</div>
+  <h2 class="serif a" data-at="0.2">Rank per use case, in rank bands</h2>
+  <div>
+    <span class="chip a" data-cue="meetings">Meetings<small>20 h</small></span><span class="chip a" data-cue="phone">Phone &amp; contact centre<small>15 h · 8 kHz</small></span><span class="chip a" data-cue="clinical">Clinical<small>8 h</small></span><span class="chip a" data-cue="media">Media<small>10 h</small></span><span class="chip a" data-cue="noisy">Field &amp; mobile<small>7 h</small></span><span class="chip on a" data-cue="live">Live table<small>latency</small></span>
+  </div>
+  <div class="card a" data-cue="bands" style="margin-top:26px;padding:10px 30px">
+    <table>
+      <tr><th>Band</th><th>System</th><th>DER (95% CI)</th><th>Verdict</th></tr>
+      <tr><td><span class="band">1–2</span></td><td>System P</td><td>11.8% <span class="muted">(10.6–13.1)</span></td><td rowspan="2" style="color:var(--accent);font-weight:700">tied: choose on price</td></tr>
+      <tr><td><span class="band">1–2</span></td><td>System W</td><td>12.6% <span class="muted">(11.3–14.0)</span></td></tr>
+      <tr><td><span class="band">3</span></td><td>System D</td><td>15.9% <span class="muted">(14.3–17.6)</span></td><td class="muted">really worse</td></tr>
+    </table>
+  </div>
+  <div class="a" data-cue="paired" style="margin-top:24px;font-size:30px" ><span class="mono" style="background:#fff;border:2px solid var(--line);border-radius:10px;padding:8px 16px">A beats B ⇔ 95% CI of paired gap &lt; 0 and gap ≥ 0.5 pt</span></div>
+</div>
+
+<!-- S4 scoring -->
+<div class="scene" data-scene="s4">
+  <div class="kicker a" data-at="0">Choice 2</div>
+  <h2 class="serif a" data-at="0.2">Score it the way products feel it</h2>
+  <div class="formula a" data-cue="d">DER = (missed + false alarm + confusion) ÷ speech time</div>
+  <div style="margin-top:34px">
+    <span class="chip on a" data-cue="collar">Collar 0 s</span><span class="chip on a" data-cue="overlap">Overlap scored</span><span class="chip on a" data-cue="count">Speaker count unknown</span><span class="chip on a" data-cue="count">Own speech detection</span>
+  </div>
+  <div class="a" data-cue="next" style="margin-top:30px;font-size:26px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase">Published next to every score</div>
+  <div style="margin-top:14px">
+    <span class="chip a" data-cue="breakdown">Missed / FA / confusion</span><span class="chip a" data-cue="j">JER</span><span class="chip a" data-cue="accuracy">Count accuracy</span><span class="chip a" data-cue="speed">Speed</span><span class="chip a" data-cue="cost">$ / audio hour</span>
+  </div>
+</div>
+
+<!-- S5 data -->
+<div class="scene" data-scene="s5">
+  <div class="kicker a" data-at="0">Choice 3</div>
+  <h2 class="serif a" data-at="0.2">New hidden data, per-speaker references</h2>
+  <div class="row" style="align-items:flex-start;margin-top:20px">
+    <div style="width:560px">
+      <div class="big a" data-cue="sixty">60 h</div>
+      <div class="a muted" data-cue="hidden" style="font-size:30px;margin-top:10px">hidden test · + 9 h public dev · 430+ speakers</div>
+      <div style="margin-top:30px"><span class="chip a" data-cue="english">English accents</span><span class="chip a" data-cue="hindi">Hindi</span><span class="chip a" data-cue="hinglish">Hinglish</span></div>
+    </div>
+    <div class="card a" data-cue="close-talk" style="flex:1">
+      <div style="font-size:30px;font-weight:700;margin-bottom:12px">Reference pipeline</div>
+      <div class="check"><b>✓</b> Room mic / phone → what systems hear</div>
+      <div class="check"><b>✓</b> Close-talk mic on every speaker → reference</div>
+      <div class="check a" data-cue="double"><b>✓</b> 20% double-annotated + adjudicated</div>
+      <div class="check a" data-cue="audited"><b>✓</b> "Systems agree, label doesn't" audit</div>
+    </div>
+  </div>
+</div>
+
+<!-- S6 pilot -->
+<div class="scene" data-scene="s6">
+  <div class="kicker a" data-at="0">Pilot run · laptop CPU · 83 min of public audio</div>
+  <h2 class="serif a" data-at="0.2">3 open systems on AMI + VoxConverse</h2>
+  <div class="row">
+    <div class="card a" data-cue="three" style="flex:1">
+      <div style="font-size:28px;font-weight:700;margin-bottom:22px">DER, collar 0, overlap scored</div>
+      <div class="bars6">
+        <div class="r6"><span>TitaNet-small</span><div class="b6"><i style="width:32.1%;background:var(--s1)"></i></div><b>32.1%</b></div>
+        <div class="r6"><span>ERes2Net-base</span><div class="b6"><i style="width:40.5%;background:var(--s3)"></i></div><b>40.5%</b></div>
+        <div class="r6"><span>WeSpeaker R34</span><div class="b6"><i style="width:58.9%;background:var(--s2)"></i></div><b>58.9%</b></div>
+      </div>
+      <div class="muted" style="font-size:24px;margin-top:14px">All gaps significant · differences are all speaker confusion</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:24px">
+      <div class="card a" data-cue="threshold"><div style="font-size:28px;font-weight:700">Surprise 1 · one config knob</div><div style="font-size:34px;margin-top:12px">Clustering threshold default → dev-tuned:<br><b>30.9% → 21.7%</b> <span class="muted">(dev DER)</span> &gt; 8.4-pt model gap</div></div>
+      <div class="card a" data-cue="old"><div style="font-size:28px;font-weight:700">Surprise 2 · legacy scoring</div><div style="font-size:34px;margin-top:12px">0.25 s collar + overlap skipped:<br><b>32.1% → 25.6%</b> <span class="muted">a fifth of the error hidden</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- S7 learned -->
+<div class="scene" data-scene="s7">
+  <div class="kicker a" data-at="0">What the benchmarks taught me</div>
+  <div class="row" style="margin-top:60px">
+    <div class="card a" data-cue="dihard" style="flex:1"><div class="serif" style="font-size:58px;font-weight:700">DIHARD III</div><div style="font-size:34px;margin-top:20px;line-height:1.35">Collar 0, overlap scored, report per domain, DER + JER</div></div>
+    <div class="card a" data-cue="ami" style="flex:1"><div class="serif" style="font-size:58px;font-weight:700">AMI · CHiME</div><div style="font-size:34px;margin-top:20px;line-height:1.35">Close-talk channels make the reference trustworthy; macro-average scenarios</div></div>
+    <div class="card a" data-cue="voxconverse" style="flex:1"><div class="serif" style="font-size:58px;font-weight:700">VoxConverse</div><div style="font-size:34px;margin-top:20px;line-height:1.35">1 to 20+ speakers per clip: never give systems the count</div></div>
+  </div>
+</div>
+
+<!-- S8 outro -->
+<div class="scene" data-scene="s8">
+  <div class="kicker a" data-at="0">Deliverables</div>
+  <h2 class="serif a" data-at="0.2">Everything is in the repo</h2>
+  <div class="a mono" data-at="0" style="font-size:44px;margin-top:10px;color:var(--accent)">github.com/amartya1523/voice-arena-diarization-eval</div>
+  <div style="margin-top:40px">
+    <span class="chip a" data-cue="main">Main document</span><span class="chip a" data-cue="one-pager">One-pager</span><span class="chip a" data-cue="leaderboard">Leaderboard sketch</span><span class="chip a" data-cue="code">Pilot code</span><span class="chip a" data-cue="raw">Raw results</span>
+  </div>
+  <div class="a serif" data-cue="thanks" style="font-size:72px;font-weight:700;margin-top:70px">Thanks for watching.</div>
+</div>
+
+<div class="footer"><span>Amartya Singh · Voice Arena diarization eval</span><span id="clock" class="mono"></span></div>
+<div id="progress"></div>
+
+<script>
+const TL = /*TIMELINE*/null;
+const FADE = 0.35, IN = 0.5;
+const ease = x => 1 - Math.pow(1 - Math.min(Math.max(x, 0), 1), 3);
+const norm = w => w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+// resolve each animated element to an absolute time
+const items = [];
+for (const sc of TL.scenes) {
+  const el = document.querySelector(`[data-scene="${sc.id}"]`);
+  let cursor = 0;
+  el.querySelectorAll('.a').forEach(a => {
+    let t;
+    if (a.dataset.at !== undefined) t = parseFloat(a.dataset.at);
+    else {
+      const cue = norm(a.dataset.cue);
+      const hit = sc.words.find(([w, wt]) => wt >= cursor - 0.01 && norm(w).startsWith(cue));
+      t = hit ? hit[1] - 0.12 : cursor + 0.3;
+      if (!hit) console.error('cue not found', sc.id, cue);
+    }
+    cursor = Math.max(cursor, t);
+    items.push({ a, t: sc.start + Math.max(t, 0) });
+  });
+  sc.el = el;
+}
+window.DUR = TL.total;
+window.seek = t => {
+  for (const sc of TL.scenes) {
+    const end = sc.start + sc.dur;
+    let o = 0;
+    if (t >= sc.start && t <= end) o = Math.min(sc.start === 0 ? 1 : ease((t - sc.start) / FADE), sc.last ? 1 : ease((end - t) / FADE));
+    sc.el.style.opacity = o;
+  }
+  for (const it of items) {
+    const p = ease((t - it.t) / IN);
+    it.a.style.opacity = p;
+    it.a.style.transform = `translateY(${(1 - p) * 26}px)`;
+  }
+  document.getElementById('progress').style.width = (100 * t / TL.total) + '%';
+  const s = Math.floor(t); document.getElementById('clock').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+window.ready = document.fonts.ready.then(() => { window.seek(0); return true; });
+</script>
+</body>
+</html>

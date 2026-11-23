@@ -1,0 +1,10 @@
+{
+ "s1": "Hi, I'm Amartya Singh, a final-year student at LNMIIT. This is my design for Voice Arena's speaker diarization leaderboard: a ranking that tells product teams which system actually works on their audio.",
+ "s2": "Diarization answers one question: who spoke when. The hard part is that one number can't serve a meeting-notes app, a call centre on eight kilohertz phone lines, and a medical scribe at once.",
+ "s3": "Choice one: rank per use case. Five tracks: meetings, phone, clinical, media, and noisy field audio, plus a separate live table. And instead of strict ranks, rank bands. If a paired bootstrap over recordings can't separate two systems, they share a band. Nobody should buy a winner that won by chance.",
+ "s4": "Choice two: score it the way products feel it. D E R with no collar, overlap counted, and the speaker count never given. Next to it: the error breakdown, J E R, count accuracy, speed, and cost.",
+ "s5": "Choice three: the data. Sixty hours of new, hidden recordings. English accents, Hindi, and Hinglish. Every speaker also wears a close-talk mic, so the reference is built per speaker, then double annotated and audited.",
+ "s7": "From the benchmarks: DIHARD taught me collar zero, scored overlap, and per-domain reporting. AMI and CHiME showed why close-talk channels make references trustworthy. And VoxConverse showed why the speaker count must stay unknown.",
+ "s8": "The main document, one-pager, leaderboard sketch, code and raw results are all in the GitHub repo. Thanks for watching.",
+ "s6": "I also ran a pilot: three open systems on AMI and VoxConverse, with far-field and phone versions. Two surprises. One clustering threshold moved D E R more than the gap between models. And the old scoring setting hid a fifth of the error."
+}
