@@ -1,0 +1,78 @@
+{
+  "system": "wespeaker",
+  "display": "pyannote-seg-3.0 + WeSpeaker ResNet34-LM",
+  "threshold": 0.5,
+  "oracle_count": false,
+  "sherpa_onnx": "2.0.3",
+  "machine": "arm64 Darwin 25.0.0",
+  "threads": 4,
+  "min_duration_on": 0.3,
+  "min_duration_off": 0.5,
+  "files": [
+    {
+      "uri": "IS1009a",
+      "condition": "close_talk",
+      "seconds": 838.0,
+      "runtime": 136.53,
+      "rtf": 0.1629,
+      "hyp_speakers": 7
+    },
+    {
+      "uri": "TS3003a",
+      "condition": "close_talk",
+      "seconds": 600.0,
+      "runtime": 91.16,
+      "rtf": 0.1519,
+      "hyp_speakers": 21
+    },
+    {
+      "uri": "bjruf",
+      "condition": "close_talk",
+      "seconds": 360.0,
+      "runtime": 82.97,
+      "rtf": 0.2305,
+      "hyp_speakers": 5
+    },
+    {
+      "uri": "fzwtp",
+      "condition": "close_talk",
+      "seconds": 285.0,
+      "runtime": 69.84,
+      "rtf": 0.2451,
+      "hyp_speakers": 6
+    },
+    {
+      "uri": "IS1009a",
+      "condition": "far_field",
+      "seconds": 838.0,
+      "runtime": 185.71,
+      "rtf": 0.2216,
+      "hyp_speakers": 5
+    },
+    {
+      "uri": "TS3003a",
+      "condition": "far_field",
+      "seconds": 600.0,
+      "runtime": 116.51,
+      "rtf": 0.1942,
+      "hyp_speakers": 3
+    },
+    {
+      "uri": "IS1009a",
+      "condition": "phone_line",
+      "seconds": 838.0,
+      "runtime": 191.18,
+      "rtf": 0.2281,
+      "hyp_speakers": 5
+    },
+    {
+      "uri": "TS3003a",
+      "condition": "phone_line",
+      "seconds": 600.0,
+      "runtime": 106.98,
+      "rtf": 0.1783,
+      "hyp_speakers": 19
+    }
+  ],
+  "note": "threshold 0.5 chosen on dev equals the sherpa-onnx default, so this is also the default-config run"
+}

@@ -1,0 +1,77 @@
+{
+  "system": "titanet",
+  "display": "pyannote-seg-3.0 + NeMo TitaNet-small",
+  "threshold": 0.9,
+  "oracle_count": false,
+  "sherpa_onnx": "2.0.3",
+  "machine": "arm64 Darwin 25.0.0",
+  "threads": 4,
+  "min_duration_on": 0.3,
+  "min_duration_off": 0.5,
+  "files": [
+    {
+      "uri": "IS1009a",
+      "condition": "close_talk",
+      "seconds": 838.0,
+      "runtime": 154.82,
+      "rtf": 0.1847,
+      "hyp_speakers": 6
+    },
+    {
+      "uri": "TS3003a",
+      "condition": "close_talk",
+      "seconds": 600.0,
+      "runtime": 111.71,
+      "rtf": 0.1862,
+      "hyp_speakers": 3
+    },
+    {
+      "uri": "bjruf",
+      "condition": "close_talk",
+      "seconds": 360.0,
+      "runtime": 74.38,
+      "rtf": 0.2066,
+      "hyp_speakers": 6
+    },
+    {
+      "uri": "fzwtp",
+      "condition": "close_talk",
+      "seconds": 285.0,
+      "runtime": 54.29,
+      "rtf": 0.1905,
+      "hyp_speakers": 11
+    },
+    {
+      "uri": "IS1009a",
+      "condition": "far_field",
+      "seconds": 838.0,
+      "runtime": 218.62,
+      "rtf": 0.2609,
+      "hyp_speakers": 10
+    },
+    {
+      "uri": "TS3003a",
+      "condition": "far_field",
+      "seconds": 600.0,
+      "runtime": 125.12,
+      "rtf": 0.2085,
+      "hyp_speakers": 4
+    },
+    {
+      "uri": "IS1009a",
+      "condition": "phone_line",
+      "seconds": 838.0,
+      "runtime": 181.12,
+      "rtf": 0.2161,
+      "hyp_speakers": 6
+    },
+    {
+      "uri": "TS3003a",
+      "condition": "phone_line",
+      "seconds": 600.0,
+      "runtime": 108.1,
+      "rtf": 0.1802,
+      "hyp_speakers": 2
+    }
+  ]
+}

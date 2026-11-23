@@ -1,0 +1,34 @@
+[
+  {
+    "uri": "ES2004b",
+    "source": "AMI",
+    "condition": "close_talk",
+    "start": 600.0,
+    "end": 840.0,
+    "speakers": 4
+  },
+  {
+    "uri": "ES2004b",
+    "source": "AMI",
+    "condition": "far_field",
+    "start": 600.0,
+    "end": 840.0,
+    "speakers": 4
+  },
+  {
+    "uri": "qwepo",
+    "source": "VoxConverse",
+    "condition": "close_talk",
+    "start": 0.0,
+    "end": 240.0,
+    "speakers": 4
+  },
+  {
+    "uri": "vgaez",
+    "source": "VoxConverse",
+    "condition": "close_talk",
+    "start": 0.0,
+    "end": 177.0,
+    "speakers": 4
+  }
+]
