@@ -1,0 +1,17 @@
+.env
+.venv/
+__pycache__/
+.DS_Store
+# large or re-downloadable
+data/raw/
+data/*/**/*.wav
+models/
+tools/
+results/devset/*/thr*/
+results/*.log
+video/node_modules
+video/frames/
+video/vo/
+video/render/
+video/.env
+docs/build/*.html
