@@ -6,7 +6,7 @@ PY=../.venv/bin/python
 for s in wespeaker titanet eres2net; do $PY tune.py --system $s; done
 for s in wespeaker titanet eres2net; do $PY run.py --system $s; done
 for s in wespeaker titanet eres2net; do $PY run.py --system $s --oracle-count; done
-$PY run.py --system wespeaker --threshold 0.5 --tag wespeaker_default_thr0.5
+
 $PY score.py
 $PY crosscheck.py
 cd .. && $PY docs/build.py
