@@ -16,3 +16,4 @@ video/render/
 video/.env
 docs/build/*.html
 docs/src/_*.html
+docs/build/chrome-profile/
