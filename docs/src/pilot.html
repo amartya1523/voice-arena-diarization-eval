@@ -1,0 +1,58 @@
+<p>The design above is mostly about decisions. To check that those decisions matter in practice, I ran a small version end to end on a laptop: real public audio, three systems, the same scorer settings as the proposed leaderboard, and the same statistics. Everything here is reproducible with <span class="code">scripts/setup.sh</span> and <span class="code">scripts/run_all.sh</span> in the repo.</p>
+
+<h3>What I ran it on</h3>
+<p>{total_min} minutes of audio across 8 files: two AMI test meetings in three conditions each (the same conversation through a headset mix, a single far-field array mic, and the headset mix passed through a simulated phone line: 300–3400 Hz band-pass, 8 kHz G.711 μ-law), plus two VoxConverse test clips (a news-style clip with 11 speakers and a two-person conversation). Reusing the same AMI conversations across conditions means the condition comparison is not confused by "this meeting is just harder".</p>
+<table class="small">
+<thead><tr><th>File</th><th>Source</th><th>Condition</th><th class="r">Minutes</th><th class="r">Speakers</th><th class="r">Overlap</th><th class="r">Turns &lt; 1 s</th></tr></thead>
+<tbody>
+{data_rows}
+</tbody>
+</table>
+<p class="note">References: AMI word-aligned "only_words" RTTMs from the pyannote AMI-diarization-setup; VoxConverse official test RTTMs. Audio from the diarizers-community parquet mirrors of the same corpora (the Edinburgh AMI mirror was returning HTTP 503 on the day). Overlap = share of the scored time where 2+ reference speakers talk.</p>
+
+<h3>Systems and settings</h3>
+<p>All three are open-source pipelines run offline on CPU (Apple M1, 4 threads) through <span class="code">sherpa-onnx 2.0.3</span>. They share the same segmentation model (pyannote segmentation-3.0, which finds speech and handles up to three local speakers per 10 s window) and differ only in the <b>speaker-embedding model</b>, the part that decides whether two stretches of speech are the same voice. That makes this a clean test of one component, which is exactly the sort of question a model builder would bring to the leaderboard. Post-processing was identical: minimum speech 0.3 s, minimum gap 0.5 s, agglomerative clustering on embeddings.</p>
+<table class="small">
+<thead><tr><th>System</th><th>ID</th><th class="r">Threshold chosen on dev</th><th class="r">Grid tried</th></tr></thead>
+<tbody>
+{sys_rows}
+</tbody>
+</table>
+<p>Clustering needs a threshold for "same speaker". Following the "declared config, no tuning on test" rule from section 2, I tuned it per system on a <b>separate dev split</b> (a different AMI meeting in close-talk and far-field, and two other VoxConverse clips) and froze it before touching the test files.</p>
+<figure><img src="../build/figs/dev_tuning.png"><figcaption>Dev-set DER against the clustering threshold. Circles mark the frozen choice. Each embedding model wants a different threshold; one shared "default" would have been unfair to two of the three.</figcaption></figure>
+
+<h3>Results (primary setting: collar 0, overlap scored, speaker count unknown)</h3>
+<table class="small">
+<thead><tr><th>System</th><th class="r">DER</th><th class="r">95% CI</th><th class="r">Missed</th><th class="r">False al.</th><th class="r">Confusion</th><th class="r">JER</th><th class="r">Count exact</th><th class="r">|Count err|</th><th class="r">Overlap DER</th><th class="r">Short-turn recall</th><th class="r">RTF</th></tr></thead>
+<tbody>
+{res_rows}
+</tbody>
+</table>
+<p class="note">All values in %, except count error (speakers) and RTF (processing time ÷ audio time, CPU). DER pooled over all 8 files. CI: 2,000 bootstrap resamples of 60-second blocks with the speaker mapping fixed per file. JER from dscore (DIHARD definition), averaged over files. RTF is indicative only: some runs shared the CPU with other jobs, so speed is not comparable across systems here.</p>
+
+<figure><img src="../build/figs/der_by_condition.png"><figcaption>DER on the same two AMI meetings heard three ways. The degradation from close-talk to far-field and phone is the "robustness gap" column of the proposed leaderboard.</figcaption></figure>
+
+<h3>Is the winner real? Paired bootstrap</h3>
+<table class="small">
+<thead><tr><th>Comparison</th><th class="r">DER gap (pts)</th><th class="r">95% CI of gap</th><th class="r">Resamples where first is better</th><th class="r">Separate band?</th></tr></thead>
+<tbody>
+{pair_rows}
+</tbody>
+</table>
+
+<h3>What the scoring settings do to the same output</h3>
+<figure><img src="../build/figs/settings_effect.png"><figcaption>{best}: one set of outputs, scored five ways. Only the first bar is what the proposed leaderboard ranks on.</figcaption></figure>
+
+<h3>Telling systems the number of speakers</h3>
+<table class="small">
+<thead><tr><th>System</th><th class="r">DER, count unknown</th><th class="r">DER, count given</th><th class="r">Change</th><th class="r">Confusion, unknown</th><th class="r">Confusion, given</th></tr></thead>
+<tbody>
+{orc_rows}
+</tbody>
+</table>
+
+<h3>Scorer cross-check</h3>
+<p>Every one of the {xcheck_n} system-file pairs was scored by both <span class="code">pyannote.metrics 4.2.0</span> and <span class="code">dscore</span> (collar 0, overlap scored). The largest DER difference was <b>{xcheck_max} points</b>. JER differs slightly between the two tools because they define it slightly differently, so the table reports dscore's JER, the DIHARD definition.</p>
+
+<h3>What I saw</h3>
+{notes}
