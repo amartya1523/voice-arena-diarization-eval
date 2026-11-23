@@ -1,0 +1,10 @@
+{
+ "pilot_line": "{total_min} min of public audio (2 AMI meetings × headset / far-field / simulated phone, 2 VoxConverse clips), 3 open systems sharing pyannote segmentation-3.0, thresholds tuned on a separate dev split, scored with pyannote.metrics and cross-checked with dscore.",
+ "pilot_bullets": [
+  "<b>Differences were all speaker confusion</b> (missed and false alarm were identical): the error mix tells a builder what to fix.",
+  "<b>One config knob beat the model choice:</b> default vs dev-tuned threshold moved dev DER by 9–15 pts, more than the 8.4-pt test gap between the top two. Configs must be declared and published.",
+  "<b>Legacy scoring hid a fifth of the error</b> ({b_der}% → {b_legacy}%); giving the true speaker count cut DER to {orc_titanet}%. Neither belongs in the rank.",
+  "<b>Single files disagreed with the overall ranking</b> (one clip flipped the top two by 10 pts): rank bands over recordings, not single numbers."
+ ],
+ "takeaway": "how a diarization system is configured and scored changes its number as much as which model it is. A leaderboard buyers can trust fixes the scoring to what products experience, publishes configs and error parts, splits by use case, and shows ties as ties."
+}
