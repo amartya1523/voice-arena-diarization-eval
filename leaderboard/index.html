@@ -124,36 +124,36 @@
     </aside>
 
     <section class="card">
-      <div class="legend"><span><i style="background:var(--miss)"></i>Missed speech</span><span><i style="background:var(--fa)"></i>False alarm</span><span><i style="background:var(--conf)"></i>Speaker confusion</span><span style="margin-left:auto">Rank band = systems whose difference is not significant (paired bootstrap, 95%, Holm)</span></div>
+      <div class="legend"><span><i style="background:var(--miss)"></i>Missed speech</span><span><i style="background:var(--fa)"></i>False alarm</span><span><i style="background:var(--conf)"></i>Speaker confusion</span><span>bar = 0–40% DER</span><span style="margin-left:auto">Rank band = systems whose difference is not significant (paired bootstrap, 95%, Holm)</span></div>
       <table>
         <thead><tr><th>Band</th><th>System</th><th>DER ↓ (95% CI)</th><th>Error mix</th><th>JER</th><th>Count right</th><th>Overlap DER</th><th>Speed</th><th>$ / audio h</th></tr></thead>
         <tbody>
           <tr class="tierline"><td colspan="9">Tier 1 · statistically tied</td></tr>
           <tr class="sel"><td><span class="band">1–2</span></td><td class="sys"><b>Diarization API · Model P-2</b><small>Vendor P · v2026-10 · default config</small><span class="badge">API</span></td>
             <td><div class="der num">11.8%</div><div class="ci"><div class="r" style="left:16%;width:15%"></div><div class="p" style="left:23%"></div></div><div class="cil num">10.6 – 13.1</div></td>
-            <td><div class="stack"><span style="width:28%;background:var(--miss)"></span><span style="width:12%;background:var(--fa)"></span><span style="width:22%;background:var(--conf)"></span></div></td>
+            <td><div class="stack"><span style="width:8.3%;background:var(--miss)"></span><span style="width:3.5%;background:var(--fa)"></span><span style="width:17.8%;background:var(--conf)"></span></div></td>
             <td class="num">19.4%</td><td class="num">71%</td><td class="num">31.0%</td><td class="num">0.02×</td><td class="num">$0.36</td></tr>
           <tr><td><span class="band">1–2</span></td><td class="sys"><b>Open EEND pipeline · W-Large</b><small>Open source · commit 4f1c2a · GPU L4</small><span class="badge">Self-hosted</span></td>
             <td><div class="der num">12.6%</div><div class="ci"><div class="r" style="left:18%;width:16%"></div><div class="p" style="left:25%"></div></div><div class="cil num">11.3 – 14.0</div></td>
-            <td><div class="stack"><span style="width:25%;background:var(--miss)"></span><span style="width:14%;background:var(--fa)"></span><span style="width:26%;background:var(--conf)"></span></div></td>
+            <td><div class="stack"><span style="width:12.1%;background:var(--miss)"></span><span style="width:6.8%;background:var(--fa)"></span><span style="width:12.6%;background:var(--conf)"></span></div></td>
             <td class="num">21.0%</td><td class="num">64%</td><td class="num">28.7%</td><td class="num">0.05×</td><td class="num">$0.09*</td></tr>
           <tr class="tierline"><td colspan="9">Tier 2</td></tr>
           <tr><td><span class="band">3–5</span></td><td class="sys"><b>STT API · Model D-3</b><small>Vendor D · diarize=true · word-level output</small><span class="badge">STT + speakers</span><span class="badge live">also live</span></td>
             <td><div class="der num">15.9%</div><div class="ci"><div class="r" style="left:25%;width:17%"></div><div class="p" style="left:33%"></div></div><div class="cil num">14.3 – 17.6</div></td>
-            <td><div class="stack"><span style="width:30%;background:var(--miss)"></span><span style="width:8%;background:var(--fa)"></span><span style="width:42%;background:var(--conf)"></span></div></td>
+            <td><div class="stack"><span style="width:14.9%;background:var(--miss)"></span><span style="width:4.0%;background:var(--fa)"></span><span style="width:20.9%;background:var(--conf)"></span></div></td>
             <td class="num">27.2%</td><td class="num">52%</td><td class="num">58.1%</td><td class="num">0.01×</td><td class="num">$0.26</td></tr>
           <tr><td><span class="band">3–5</span></td><td class="sys"><b>Open pipeline · Seg-3 + ResNet34</b><small>Open source · v3.1 · CPU 8-core</small><span class="badge">Self-hosted</span></td>
             <td><div class="der num">16.4%</div><div class="ci"><div class="r" style="left:26%;width:17%"></div><div class="p" style="left:34%"></div></div><div class="cil num">14.8 – 18.2</div></td>
-            <td><div class="stack"><span style="width:24%;background:var(--miss)"></span><span style="width:13%;background:var(--fa)"></span><span style="width:45%;background:var(--conf)"></span></div></td>
+            <td><div class="stack"><span style="width:12.0%;background:var(--miss)"></span><span style="width:6.5%;background:var(--fa)"></span><span style="width:22.5%;background:var(--conf)"></span></div></td>
             <td class="num">25.1%</td><td class="num">48%</td><td class="num">33.9%</td><td class="num">0.18×</td><td class="num">$0.04*</td></tr>
           <tr><td><span class="band">3–5</span></td><td class="sys"><b>STT API · Model A-U2</b><small>Vendor A · speaker_labels on</small><span class="badge">STT + speakers</span></td>
             <td><div class="der num">17.1%</div><div class="ci"><div class="r" style="left:28%;width:17%"></div><div class="p" style="left:35%"></div></div><div class="cil num">15.5 – 18.9</div></td>
-            <td><div class="stack"><span style="width:34%;background:var(--miss)"></span><span style="width:6%;background:var(--fa)"></span><span style="width:40%;background:var(--conf)"></span></div></td>
+            <td><div class="stack"><span style="width:18.2%;background:var(--miss)"></span><span style="width:3.2%;background:var(--fa)"></span><span style="width:21.4%;background:var(--conf)"></span></div></td>
             <td class="num">28.8%</td><td class="num">55%</td><td class="num">61.4%</td><td class="num">0.03×</td><td class="num">$0.37</td></tr>
           <tr class="tierline"><td colspan="9">Tier 3</td></tr>
           <tr><td><span class="band">6</span></td><td class="sys"><b>Cloud STT · Model G-C</b><small>Vendor G · min 1 / max 10 speakers</small><span class="badge">STT + speakers</span></td>
             <td><div class="der num">24.3%</div><div class="ci"><div class="r" style="left:41%;width:19%"></div><div class="p" style="left:50%"></div></div><div class="cil num">22.4 – 26.6</div></td>
-            <td><div class="stack"><span style="width:30%;background:var(--miss)"></span><span style="width:9%;background:var(--fa)"></span><span style="width:61%;background:var(--conf)"></span></div></td>
+            <td><div class="stack"><span style="width:18.2%;background:var(--miss)"></span><span style="width:5.5%;background:var(--fa)"></span><span style="width:37.1%;background:var(--conf)"></span></div></td>
             <td class="num">38.0%</td><td class="num warnc">29%</td><td class="num">66.0%</td><td class="num">0.04×</td><td class="num">$0.96</td></tr>
         </tbody>
       </table>

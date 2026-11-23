@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Amartya Singh · Q1 Main · Speaker diarization evaluation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="cover">
+  <div class="kicker">Voice Arena · Take-home, Question 1</div>
+  <h1>Who spoke when, and can you trust the ranking?</h1>
+  <p class="lede">An evaluation design for a public speaker diarization leaderboard, with a small pilot run on public recordings.</p>
+  <div class="by">Amartya Singh &nbsp;·&nbsp; 23 November 2026<br>
+  Code, data recipe and raw results: <a href="https://github.com/amartya1523/voice-arena-diarization-eval">github.com/amartya1523/voice-arena-diarization-eval</a></div>
+
+  <div class="tldr">
+    <h3>The design in eight lines</h3>
+    <ol>
+      <li><b>Rank per use case, not one global number.</b> Five tracks (meetings, phone &amp; contact centre, clinical consults, media, field &amp; mobile) plus a separate live table. "Overall" is a plain average of the tracks.</li>
+      <li><b>Primary metric: DER with no collar, overlap scored, speaker count not given</b>, using each system's own speech detection. This is the setting closest to what a buyer actually gets.</li>
+      <li><b>Every score ships with its parts</b>: missed speech, false alarm, speaker confusion, JER, speaker-count accuracy, DER inside overlap, speed and cost.</li>
+      <li><b>62 hours of hidden test audio</b>, newly recorded with consent, 400+ speakers, English accents plus Hindi, Hinglish and three more Indian languages. Every speaker also wears a close-talk mic so the reference is built per speaker.</li>
+      <li><b>References are double-annotated on 20%</b>, adjudicated, and re-checked wherever all strong systems agree with each other but not with the label.</li>
+      <li><b>No winner by chance:</b> paired bootstrap over recordings; systems whose gap is not significant share a <i>rank band</i>.</li>
+      <li><b>Fair inputs:</b> same audio, same hints, pinned versions, declared configs, failures counted as errors.</li>
+      <li><b>Pilot:</b> 3 open systems × 8 files (AMI, VoxConverse; close-talk, far-field, simulated phone). One config knob moved DER by 9–15 points, more than the gap between the two best systems, and legacy scoring hid a fifth of the error.</li>
+    </ol>
+  </div>
+</section>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#purpose">Purpose: who uses this and what they decide</a></li>
+    <li><a href="#models">Models: what we evaluate and how we keep it fair</a></li>
+    <li><a href="#data">Test data and the reference</a></li>
+    <li><a href="#metrics">Metrics and scoring settings</a></li>
+    <li><a href="#process">Evaluation process, significance and what we publish</a></li>
+    <li><a href="#pilot">Pilot run: three systems on eight public recordings</a></li>
+    <li><a href="#leaderboard">Leaderboard sketch</a></li>
+    <li><a href="#reflection">Final reflection</a></li>
+    <li><a href="#refs">What I read</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="purpose"><span class="n">1</span>Purpose</h2>
+
+<p>A diarization leaderboard is only useful if it helps someone make a decision they would otherwise get wrong. So I started from the people who will open the page and worked backwards to the design.</p>
+
+<h3>Who it is for, and the decision each one makes</h3>
+<table>
+<thead><tr><th style="width:19%">User</th><th style="width:27%">Decision they make with it</th><th>What they need to see</th><th style="width:17%">Design consequence</th></tr></thead>
+<tbody>
+<tr><td><b>Product engineer</b> at a meeting-notes or note-taker company</td><td>Which API or model to ship; whether to switch vendors</td><td>3–10 speakers, laptop and room mics, people talking over each other, many short "yeah"/"right" turns. Cost per hour and speed.</td><td>Meetings track; overlap DER; short-turn recall; $/hour</td></tr>
+<tr><td><b>Contact-centre analytics lead</b></td><td>Which vendor to buy for agent/customer split on 8 kHz calls</td><td>Two (sometimes three, on transfer) speakers, phone codecs, hold music, IVR prompts. Mostly cares about confusion between agent and customer.</td><td>Phone track at native 8 kHz; confusion shown separately</td></tr>
+<tr><td><b>Health-tech / medical-scribe team</b></td><td>Whether diarization is good enough to attribute clinical statements to doctor vs patient</td><td>2–4 speakers (doctor, patient, family member, interpreter), room mic, quiet short answers. Errors are expensive.</td><td>Clinical track; JER so the quiet patient counts as much as the talkative doctor</td></tr>
+<tr><td><b>Media, subtitling and podcast tools</b></td><td>Which system scales to long, many-speaker content</td><td>1–15+ speakers, music, laughter, crosstalk on panels.</td><td>Media track; speaker-count error</td></tr>
+<tr><td><b>Voice-agent and live-captioning builders</b></td><td>Which system works <i>live</i></td><td>Latency of speaker labels, accuracy while streaming vs after the call.</td><td>Separate live table; never mixed with offline ranks</td></tr>
+<tr><td><b>Model builders</b> (open-source labs, vendors)</td><td>Where their system fails and what to fix next</td><td>Error breakdown per condition, per-file results, a public dev set to iterate on.</td><td>Public dev split; per-file export; failure clips</td></tr>
+<tr><td><b>Non-technical buyer</b> (procurement, founder)</td><td>Shortlist two or three vendors to trial</td><td>A plain answer: "for 4–6 person meetings in English and Hinglish, these are tied at the top".</td><td>Rank bands instead of fake precision; use-case filter</td></tr>
+</tbody>
+</table>
+
+<h3>Principles that follow from this</h3>
+<ul>
+<li><b>Different users, different winners.</b> A system that is best on clean podcasts can be mediocre on 8 kHz calls. A single global rank would push most users towards the wrong choice, so the default view is per track.</li>
+<li><b>Ties are real.</b> If two systems are within noise of each other, the page must say so. A buyer who picks #1 over #2 on a 0.3-point gap is being misled.</li>
+<li><b>The number must be explainable.</b> "DER 14%" tells an engineer nothing about whether the system misses quiet speakers or merges two similar voices. The breakdown is part of the score, not a footnote.</li>
+<li><b>Accuracy is not the whole decision.</b> Cost, speed, live support and on-prem availability sit next to the score.</li>
+</ul>
+
+<p class="aside"><b>Out of scope for v1:</b> speaker <i>identification</i> (naming who "Speaker 2" is), transcription accuracy on its own (that is the ASR leaderboard), and multi-channel array processing as the main track (offered as a side track, because most products receive one mixed channel).</p>
+
+<!-- ============================================================ -->
+<h2 id="models"><span class="n">2</span>Models</h2>
+
+<h3>Types of systems</h3>
+<table>
+<thead><tr><th style="width:24%">Type</th><th>What it is</th><th style="width:30%">What it outputs / how we run it</th></tr></thead>
+<tbody>
+<tr><td><b>A. Open-source modular pipelines</b></td><td>Voice activity + segmentation model, speaker-embedding model, clustering. The classic recipe (pyannote, NeMo clustering, 3D-Speaker).</td><td>Segments with labels. Self-hosted in our container on a fixed GPU and a fixed CPU box.</td></tr>
+<tr><td><b>B. Open-source end-to-end neural</b></td><td>One network predicts per-frame speaker activity directly, often with clustering for long audio (Sortformer, DiariZen, EEND variants).</td><td>Segments; handles overlap natively. Self-hosted.</td></tr>
+<tr><td><b>C. Diarization-only APIs</b></td><td>Commercial services whose product <i>is</i> diarization.</td><td>Segments via REST. Called from our runner.</td></tr>
+<tr><td><b>D. Speech-to-text APIs with speaker labels</b></td><td>The most common way companies actually get diarization: a transcript where each word has a speaker tag.</td><td>Words with timestamps and speaker tags. Converted to segments by a published rule (below).</td></tr>
+<tr><td><b>E. Live / streaming systems</b></td><td>Give speaker labels while audio is still arriving.</td><td>Fed in real time; scored in the live table on final output plus latency.</td></tr>
+<tr><td><b>F. On-device SDKs</b></td><td>Run on phone or laptop without cloud.</td><td>Run on a reference laptop; shown with a device badge.</td></tr>
+</tbody>
+</table>
+
+<h3>Launch list (15 systems)</h3>
+<p>Model names below are the public identifiers as I understand them in November 2026. Before the first run each one is pinned to an exact version string or commit hash and the date it was called, because API models change silently.</p>
+<table class="small">
+<thead><tr><th>#</th><th>Company / project</th><th>Exact model or setting</th><th>Type</th><th>How we run it</th><th>Live?</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>pyannote (open source)</td><td><span class="code">pyannote/speaker-diarization-community-1</span> (pyannote.audio 4.x)</td><td>A</td><td>Self-hosted, GPU + CPU</td><td>No</td></tr>
+<tr><td>2</td><td>pyannote (open source)</td><td><span class="code">pyannote/speaker-diarization-3.1</span> (legacy baseline, widely deployed)</td><td>A</td><td>Self-hosted</td><td>No</td></tr>
+<tr><td>3</td><td>pyannoteAI</td><td>Precision-2 diarization API</td><td>C</td><td>API</td><td>No</td></tr>
+<tr><td>4</td><td>NVIDIA NeMo</td><td><span class="code">nvidia/diar_sortformer_4spk-v1</span> (offline end-to-end)</td><td>B</td><td>Self-hosted, GPU</td><td>No</td></tr>
+<tr><td>5</td><td>NVIDIA NeMo</td><td><span class="code">nvidia/diar_streaming_sortformer_4spk-v2</span></td><td>B / E</td><td>Self-hosted, streamed</td><td>Yes</td></tr>
+<tr><td>6</td><td>BUT Speech@FIT</td><td>DiariZen, <span class="code">BUT-FIT/diarizen-wavlm-large-s80-md</span></td><td>B</td><td>Self-hosted, GPU</td><td>No</td></tr>
+<tr><td>7</td><td>Alibaba 3D-Speaker</td><td>3D-Speaker diarization recipe (CAM++ embeddings + clustering)</td><td>A</td><td>Self-hosted</td><td>No</td></tr>
+<tr><td>8</td><td>Deepgram</td><td>Nova-3 with <span class="code">diarize=true</span></td><td>D / E</td><td>API, batch and streaming</td><td>Yes</td></tr>
+<tr><td>9</td><td>AssemblyAI</td><td>Universal (batch) with <span class="code">speaker_labels=true</span></td><td>D</td><td>API</td><td>No*</td></tr>
+<tr><td>10</td><td>Amazon Web Services</td><td>Amazon Transcribe, <span class="code">ShowSpeakerLabels</span> on</td><td>D / E</td><td>API</td><td>Yes</td></tr>
+<tr><td>11</td><td>Google Cloud</td><td>Speech-to-Text V2, Chirp 3 with speaker diarization</td><td>D</td><td>API</td><td>No</td></tr>
+<tr><td>12</td><td>Microsoft</td><td>Azure AI Speech, fast transcription / conversation transcription with diarization</td><td>D / E</td><td>API</td><td>Yes</td></tr>
+<tr><td>13</td><td>Speechmatics</td><td>Batch transcription, enhanced operating point, <span class="code">diarization: speaker</span></td><td>D / E</td><td>API</td><td>Yes</td></tr>
+<tr><td>14</td><td>ElevenLabs</td><td>Scribe (<span class="code">scribe_v1</span>) with <span class="code">diarize=true</span></td><td>D</td><td>API</td><td>No*</td></tr>
+<tr><td>15</td><td>OpenAI</td><td><span class="code">gpt-4o-transcribe-diarize</span></td><td>D</td><td>API</td><td>No</td></tr>
+<tr><td>+</td><td>Rev</td><td>Reverb diarization v2 (open weights)</td><td>A</td><td>Self-hosted</td><td>No</td></tr>
+<tr><td>+</td><td>Picovoice</td><td>Falcon speaker diarization (on-device)</td><td>F</td><td>Reference laptop</td><td>No</td></tr>
+</tbody>
+</table>
+<p class="note">* The vendor has a separate streaming product; whether its streaming endpoint returns speaker labels is checked at onboarding and the badge set from that, not from marketing pages. Rows marked "+" are reserve entries if a launch system cannot be run under our terms (for example, no zero-retention option).</p>
+
+<h3>Keeping the comparison fair between very different systems</h3>
+<table>
+<thead><tr><th style="width:24%">Problem</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td>Different inputs</td><td>Every system gets the <b>same file</b>: 16 kHz, 16-bit mono WAV; the phone track at its native 8 kHz (we do not upsample for systems that accept 8 kHz). No denoising or gain changes by us.</td></tr>
+<tr><td>Hints that some systems accept</td><td><b>Main ranking: no speaker count, no min/max</b>. Language code <b>is</b> given, because every real buyer knows the language of their product and many STT APIs require it. A separate, clearly labelled "count hinted" column shows results when the true count is supplied, so users with fixed-count calls can see the gain. Hinted results never enter the rank.</td></tr>
+<tr><td>Configuration</td><td>Two runs per system: <b>vendor defaults</b>, and one <b>declared best config</b> the vendor (or we, from public docs) submits <i>before</i> seeing test data. No tuning on test. Config is published with a hash.</td></tr>
+<tr><td>Speech detection</td><td>Systems use their own. Oracle speech regions are a lab setting no product has, so they are only used in a diagnostic view.</td></tr>
+<tr><td>Word-level outputs (type D)</td><td>Converted to segments by one published rule: each word becomes [start, end] with its speaker; consecutive words of the same speaker are joined if the gap is under 0.5 s. Because word timings hide pauses and backchannels, type-D systems are also scored with a word-level metric (WDER) so they are not judged only on a format that disadvantages them.</td></tr>
+<tr><td>Overlap</td><td>Scored for everyone. A system that cannot output two speakers at once loses on overlap; that is the experience its users will have, so it stays.</td></tr>
+<tr><td>Versions drift</td><td>Each row shows the version string, call date and a re-run date. API systems are re-run monthly on a 10% "drift probe"; if DER moves by more than the CI half-width, the full set is re-run and the change is flagged.</td></tr>
+<tr><td>Failures</td><td>Time-outs, crashes and empty outputs count as 100% missed speech for that file, and the failure rate is shown. Otherwise a flaky system could look good by failing on the hard files.</td></tr>
+<tr><td>Compute</td><td>Self-hosted systems run on a fixed reference GPU (one NVIDIA L4) and a fixed 8-core CPU instance. Speed is reported as real-time factor; cost is rental price per audio hour so it is comparable to API pricing.</td></tr>
+<tr><td>Live systems</td><td>Audio is streamed at 1× real time in 100 ms chunks. We score the final labels and measure label latency (time from a word being spoken to a stable speaker tag). Live and offline are separate tables.</td></tr>
+<tr><td>Data protection</td><td>Test audio is sent only to APIs with a zero-retention / no-training option enabled, which also stops vendors from training on the hidden set.</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="data"><span class="n">3</span>Test data</h2>
+
+<p>The test set has to look like what the users above actually process, and it has to stay hidden. Public sets (AMI, VoxConverse, DIHARD dev, CALLHOME) are valuable but they have been on the internet for years and are almost certainly in some vendors' training data. So the ranked set is <b>newly recorded</b>, and a small public anchor set is reported next to it (not ranked) so numbers can be related to the literature.</p>
+
+<h3>What we collect, by track</h3>
+<table>
+<thead><tr><th>Track</th><th>Hours (test / dev)</th><th>Recordings</th><th>Speakers per file</th><th>Settings and devices</th></tr></thead>
+<tbody>
+<tr><td><b>Meetings</b></td><td>20 / 3</td><td>~90 × 10–20 min</td><td>3–10</td><td>In-room meetings (table mic, laptop mic, ceiling array), hybrid calls (Zoom / Meet / Teams recordings with remote participants), stand-ups</td></tr>
+<tr><td><b>Phone &amp; contact centre</b></td><td>15 / 2</td><td>~180 × 3–8 min</td><td>2–3</td><td>Real PSTN and VoIP legs, G.711 and narrowband codecs, mobile on speaker, hold music, IVR prompts, call transfers</td></tr>
+<tr><td><b>Clinical consults</b></td><td>8 / 1</td><td>~60 × 6–12 min</td><td>2–4</td><td>Role-played consultations with trained actors and clinicians in exam rooms; phone on desk; family member or interpreter in some</td></tr>
+<tr><td><b>Media &amp; podcasts</b></td><td>10 / 2</td><td>~50 × 8–20 min</td><td>1–15</td><td>Podcasts, panel discussions, news debates, interviews; licensed or commissioned; music beds and laughter</td></tr>
+<tr><td><b>Field &amp; mobile</b></td><td>7 / 1</td><td>~60 × 4–10 min</td><td>2–5</td><td>Car, street, kitchen, shop counter; phone in pocket or on a table; wind and traffic</td></tr>
+<tr><td><b>Total</b></td><td><b>60 / 9</b></td><td>~440</td><td>1–15</td><td>Plus ~2.5 h of single-speaker files spread across tracks, so over-splitting one voice is caught</td></tr>
+</tbody>
+</table>
+
+<h3>Speakers, languages and accents</h3>
+<ul>
+<li><b>430+ unique speakers</b>, no speaker appears in both dev and test. Balanced gender, ages 18 to 70+, and each meeting deliberately includes some same-gender, same-accent pairs (similar voices are a known failure mode).</li>
+<li><b>Languages:</b> English ~55% (Indian English from several first languages, US, UK, Nigerian, Filipino, Australian), Hindi ~15%, <b>Hinglish code-switching ~15%</b>, Tamil, Bengali and Marathi ~5% each. India is a large market for call analytics and meeting tools, and code-switching is where systems trained mostly on English break in ways nobody reports.</li>
+<li><b>Behaviour we make sure is present:</b> overlap (target 10–20% of speech in meetings), short turns under 1 s (backchannels like "haan", "mm-hm", "right"), interruptions, long monologues, laughter, a speaker who joins late, a speaker who barely talks.</li>
+</ul>
+
+<h3>Why about 60 hours</h3>
+<p>The size is set by how precise the leaderboard needs to be, not by habit. Recordings, not minutes, are the unit that varies: in the pilot (section 6) the best system's DER ranged from 18% to 50% across files, a between-recording standard deviation of about 10 points. With that spread, a 95% interval of about ±2 to ±2.5 points per track needs roughly 60–90 recordings (1.96 × 10 / √n), which is where the recording counts above come from. Strong commercial systems sit at lower DER and usually spread less, so their intervals will be tighter, and paired comparisons between systems are tighter still. Smaller tracks (media, clinical) get wider intervals, and the page shows them honestly rather than padding the track.</p>
+
+<h3>How the reference ("the correct answer") is built</h3>
+<ol>
+<li><b>Record each speaker on their own channel as well as the mix.</b> Meeting participants wear a lavalier or headset in addition to the room device; phone calls are recorded as two-channel stereo with agent and caller separated. Systems only ever see the mixed or far-field audio. This idea comes straight from AMI, AliMeeting and CHiME: per-speaker channels make the reference far more accurate, especially in overlap.</li>
+<li><b>Automatic first pass:</b> speech detection on each close-talk channel, cross-talk suppression (a channel only counts as speech if it is clearly louder than the others at that moment), and forced alignment of the transcript to get word boundaries.</li>
+<li><b>Human correction</b> in an annotation tool that shows all speaker tiers and the waveform. Annotators fix boundaries, split and merge turns, and tag non-speech.</li>
+<li><b>Annotation rules</b> (written guide, with audio examples):
+  <ul>
+  <li>A segment is continuous speech from one speaker; a pause of 0.3 s or more splits it.</li>
+  <li>Backchannels ("mm-hm", "haan", "yeah") <b>are speech</b> and are labelled; they are also tagged so we can report short-turn recall.</li>
+  <li>Laughter, coughs, breaths and lip smacks are <b>not</b> speech but are tagged; overlapped laughter is excluded from scoring.</li>
+  <li>Overlap is labelled naturally, because each speaker has their own tier.</li>
+  <li>Unintelligible but clearly speech is still speech and still attributed.</li>
+  <li>IVR prompts and hold-music voice-overs are marked as a separate "machine" speaker in the phone track and excluded from scoring; real buyers want those ignored.</li>
+  </ul>
+</li>
+<li><b>Independent second annotation on 20%</b> of files, chosen at random within each track, then adjudication by a senior annotator.</li>
+</ol>
+
+<h3>How we check the reference is right</h3>
+<table>
+<thead><tr><th style="width:28%">Check</th><th>What it does</th><th style="width:20%">Target / action</th></tr></thead>
+<tbody>
+<tr><td>Inter-annotator agreement</td><td>Score annotator A against annotator B with the same DER we use for systems (collar 0). This also tells us the <b>noise floor</b>: no system should be ranked on differences smaller than human disagreement.</td><td>Below 4% DER per track; tracks above get guideline revision and re-labelling</td></tr>
+<tr><td>Boundary agreement</td><td>Median distance between the two annotators' segment edges.</td><td>Under 100 ms</td></tr>
+<tr><td>Automatic sanity checks</td><td>Segments outside the file, a label on a channel that is silent, speaker counts that disagree with the session sheet, impossible overlaps (3+ people for long stretches).</td><td>Must pass before release</td></tr>
+<tr><td>"Systems agree, label doesn't" mining</td><td>After the first run, find regions where the top 3–4 systems agree with each other but disagree with the reference. These are the most likely label errors. A blind annotator re-checks them.</td><td>Publish how many were real label errors</td></tr>
+<tr><td>Gold audit</td><td>A senior annotator re-labels a random 2% each release without seeing the existing label.</td><td>Error rate published</td></tr>
+<tr><td>Versioning</td><td>Reference is versioned (v1.0, v1.1, …) with a changelog; all systems are re-scored on each version, so ranks never mix reference versions.</td><td>Always</td></tr>
+</tbody>
+</table>
+
+<h3>Consent, privacy and keeping the set hidden</h3>
+<ul>
+<li>All speakers sign consent for evaluation use; clinical sessions are role-play, never real patients; contact-centre audio is either role-played on real phone infrastructure or licensed with PII bleeped (bleeps marked as non-scored).</li>
+<li>Test audio never leaves our storage except to APIs with zero retention. A few canary recordings (unique, inaudible-to-users markers in metadata) help detect leaks.</li>
+<li>20% of the test set is replaced each year with new recordings, so a system cannot quietly overfit the set over time. Retired files move to the public dev set.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="metrics"><span class="n">4</span>Metrics</h2>
+
+<h3>Primary metric: Diarization Error Rate (DER)</h3>
+<p><b>In plain words:</b> of all the time someone was speaking, what share did the system get wrong? There are three ways to get it wrong: it said nobody was talking when someone was (<i>missed speech</i>), it said someone was talking when nobody was (<i>false alarm</i>), or it gave the speech to the wrong person (<i>speaker confusion</i>). System labels ("spk00") are matched to reference speakers in the way that is most favourable to the system (one-to-one, Hungarian matching), because systems are not told who anyone is.</p>
+<div class="formula">DER = ( missed + false alarm + confusion ) ÷ total reference speech time</div>
+<p>In overlap, each speaker's time counts separately, so 2 s where two people talk counts as 4 s of speech. DER can exceed 100% if a system adds a lot of false speech.</p>
+<p><b>Why DER as the headline:</b> it is time-weighted, which is what a user experiences reading a transcript ("how much of this is attributed wrongly?"), it splits into parts that tell an engineer what to fix, and it is what the whole field reports, so people can relate our numbers to papers. Its weakness is that a speaker who talks for 30 seconds in an hour barely affects it. That is why JER sits right next to it.</p>
+<p><b>How it is aggregated:</b> within a track, errors and speech time are summed over all files and then divided (pooled), so a 20-minute meeting counts more than a 3-minute one, as it would for a user. "Overall" is the unweighted mean of the five track DERs, so the 20-hour meetings track does not drown out the clinical track.</p>
+
+<h3>Supporting metrics</h3>
+<table>
+<thead><tr><th style="width:22%">Metric</th><th>Plain meaning</th><th style="width:30%">Why it is there</th></tr></thead>
+<tbody>
+<tr><td><b>Missed / false alarm / confusion</b></td><td>The three parts of DER, each as % of speech.</td><td>Tells a builder whether the problem is detecting speech or telling voices apart.</td></tr>
+<tr><td><b>JER</b> (Jaccard error rate)</td><td>For each real speaker, how badly their speech overlaps with the system speaker matched to them (1 − intersection/union), then averaged over speakers so each person counts equally.</td><td>Protects quiet and minority speakers: the patient in a consult, the customer who says little.</td></tr>
+<tr><td><b>Speaker-count accuracy</b></td><td>% of files where the system found exactly the right number of speakers; also mean absolute error.</td><td>A "3 speakers" meeting shown as 5 is a visible, embarrassing failure even if DER looks fine.</td></tr>
+<tr><td><b>Overlap DER</b></td><td>DER measured only inside regions where 2+ people talk.</td><td>Meetings and debates live here; many systems quietly give up in overlap.</td></tr>
+<tr><td><b>Short-turn recall</b></td><td>% of reference turns shorter than 1 s for which the system assigns at least half the turn to the right speaker.</td><td>Backchannels carry meaning ("haan, theek hai" is agreement) and are the first thing systems drop.</td></tr>
+<tr><td><b>WDER</b> (word diarization error rate)</td><td>For STT systems: % of correctly recognised words that got the wrong speaker.</td><td>Fair view of type-D systems, matching how their users consume output.</td></tr>
+<tr><td><b>cpWER / tcpWER</b> (MeetEval)</td><td>Word error rate after the best mapping of system speakers to real speakers; tcpWER also checks timing.</td><td>Optional column for "who said what" products; links diarization to transcript quality.</td></tr>
+<tr><td><b>Robustness gap</b></td><td>DER on degraded condition minus DER on clean condition, on the same conversations.</td><td>Shows which systems collapse on far-field or phone audio.</td></tr>
+<tr><td><b>Speed, latency, cost, failure rate</b></td><td>Real-time factor; live label latency (p50 / p95); $ per audio hour; % of files failed.</td><td>Part of the buying decision.</td></tr>
+</tbody>
+</table>
+
+<h3>Scoring settings, and why</h3>
+<table>
+<thead><tr><th style="width:22%">Setting</th><th style="width:20%">Choice</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td>Collar (tolerance around boundaries)</td><td><b>0 s</b></td><td>The 0.25 s collar came from an era when human boundaries were rough. Our boundaries come from forced alignment plus human checks, so they are good to roughly 0.1 s. A 0.25 s collar on each side removes half a second around every boundary, which wipes out most of a 0.6 s "yeah" and hides exactly the errors users notice. DIHARD made the same call. A legacy DER (0.25 s collar, overlap skipped) is still computed and exported, only for comparing with older papers.</td></tr>
+<tr><td>Overlapping speech</td><td><b>Scored</b></td><td>Overlap is a large share of meeting speech and where systems differ the most. Skipping it rewards systems that ignore it. In the pilot, the legacy setting (0.25 s collar, overlap skipped) cut the best system's DER from 32.1% to 25.6%: a fifth of the error disappeared without the system changing at all.</td></tr>
+<tr><td>Number of speakers</td><td><b>Not given</b></td><td>No product knows how many people will join a meeting. Count-hinted runs are shown in a separate column for fixed-count use cases (two-party calls).</td></tr>
+<tr><td>Speech activity</td><td><b>System's own</b></td><td>Oracle speech regions remove the hardest part of the problem in noisy audio.</td></tr>
+<tr><td>Scored region (UEM)</td><td>Whole file minus marked regions</td><td>Excluded: consent prompts, bleeped PII, IVR / machine speech, overlapped laughter.</td></tr>
+<tr><td>Label mapping</td><td>One-to-one, optimal (Hungarian)</td><td>Standard; extra system speakers become confusion or false alarm.</td></tr>
+<tr><td>Tools</td><td><span class="code">pyannote.metrics</span> as the scorer, <span class="code">dscore</span> as an independent cross-check, <span class="code">MeetEval</span> for cpWER/tcpWER</td><td>Two independent scorers must agree on every file before results are published. (In the pilot they did; see section 6.)</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="process"><span class="n">5</span>Evaluation process</h2>
+
+<h3>From raw audio to a published leaderboard</h3>
+<ol class="steps">
+<li><b>Collect.</b> Record sessions under the protocol (mixed + per-speaker channels), with a session sheet: speakers, devices, room, language.</li>
+<li><b>Build the reference.</b> Automatic first pass, human correction, 20% double annotation, adjudication, automatic checks. Freeze as reference v1.0.</li>
+<li><b>Prepare inputs.</b> Export each file to the track format (16 kHz mono WAV, or 8 kHz for phone). Write the UEM (scored regions). Compute a hash for every file and publish the hash list.</li>
+<li><b>Onboard a system.</b> Record company, model ID, version, date, config (defaults + one declared config), hardware. Smoke-test on the public dev set; the vendor confirms the output looks right.</li>
+<li><b>Run.</b> A containerised runner sends the same files in random order to every system, with retries (3 × with back-off) and a timeout of 2× the vendor's stated limit. Everything is logged: request, raw response, timing.</li>
+<li><b>Normalise.</b> Convert raw output to RTTM with one converter per output format, unit-tested on hand-made examples (including words with missing timestamps).</li>
+<li><b>Score.</b> Run <span class="code">pyannote.metrics</span> and <span class="code">dscore</span>; check they agree; compute all supporting metrics per file.</li>
+<li><b>Label-error pass.</b> Mine regions where strong systems agree against the reference; re-check blind; if the reference changes, bump the version and re-score everyone.</li>
+<li><b>Statistics.</b> Bootstrap confidence intervals and pairwise tests (below); assign rank bands.</li>
+<li><b>Review.</b> Every system owner gets a private preview of their own per-file results 7 days before publication and can report a runner bug (not argue the metric). Fixed bugs mean a re-run for that system only.</li>
+<li><b>Publish.</b> Leaderboard, per-file CSV, all hypothesis RTTMs, configs, scorer versions, reference version, and a changelog.</li>
+<li><b>Maintain.</b> Monthly drift probe for APIs, quarterly full re-run, yearly 20% test refresh.</li>
+</ol>
+
+<h3>Deciding that one system really beats another</h3>
+<p>Two systems with DER 14.1% and 14.6% on 60 hours may well be tied: one hard file can swing that. The rules:</p>
+<ul>
+<li><b>Unit of resampling is the recording</b>, not the minute. Minutes inside a meeting are correlated (same room, same voices), so resampling minutes makes intervals look falsely tight. In the pilot, with only a handful of recordings, I had to resample 60-second blocks and say clearly that this underestimates the uncertainty.</li>
+<li><b>Confidence interval per score:</b> 10,000 bootstrap resamples of recordings, stratified by track, pooled DER each time; report the 2.5th–97.5th percentile.</li>
+<li><b>Paired comparison:</b> for systems A and B, use the <i>same</i> resampled recordings for both and look at the distribution of DER(A) − DER(B). Pairing removes the shared "this file is just hard" variation, so it is much more sensitive than comparing two separate intervals.</li>
+<li><b>A beats B</b> only if the 95% interval of the difference is entirely below zero <b>and</b> the gap is at least 0.5 DER points (a practical-significance floor, roughly the size of human annotation disagreement in quiet audio). P-values for the adjacent comparisons are Holm-corrected, because a leaderboard makes many comparisons at once.</li>
+<li><b>Rank bands:</b> systems are sorted by DER, and each system's band runs from the best rank it is statistically tied with to the worst. The page shows "1–2", "3–5", not "#3". Ties are visible, not hidden.</li>
+<li><b>Per-track significance is computed separately</b>; "Overall" bands use the bootstrap of the macro-average.</li>
+</ul>
+
+<h3>What is published next to each score</h3>
+<table>
+<tbody>
+<tr><td style="width:28%"><b>The score</b></td><td>DER with 95% CI, rank band</td></tr>
+<tr><td><b>Why it is that score</b></td><td>Missed / false alarm / confusion, JER, speaker-count accuracy, overlap DER, short-turn recall, WDER for STT systems</td></tr>
+<tr><td><b>Where it breaks</b></td><td>DER by condition (close-talk, far-field, phone, speaker count, language), robustness gap, 2–3 short audio clips of typical errors (from the public dev set only)</td></tr>
+<tr><td><b>Practical</b></td><td>Real-time factor or live latency, $ per audio hour, failure rate, deployment (API / self-host / on-device), live support</td></tr>
+<tr><td><b>Provenance</b></td><td>Model ID and version, call date, config and hash, hardware for self-hosted, reference version, scorer versions, "hinted" vs "unhinted"</td></tr>
+<tr><td><b>Comparability</b></td><td>Legacy DER (0.25 s collar, no overlap) and public-anchor-set DER, exported but not ranked</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="pilot"><span class="n">6</span>Pilot run: three systems on eight public recordings</h2>
+<!--PILOT-->
+
+<!-- ============================================================ -->
+<h2 id="leaderboard"><span class="n">7</span>Leaderboard sketch</h2>
+<p>The full-size mockup is a separate deliverable (<span class="code">Amartya_Singh_Q1_Leaderboard_Sketch.png</span>, and the HTML in the repo). Values in it are placeholders, deliberately anonymised so nobody mistakes them for measurements. What it shows:</p>
+<ul>
+<li><b>Tracks as tabs</b> at the top, "Overall" first, "Live" as its own table.</li>
+<li><b>Filters</b> that re-score from per-file results (system type, condition, speaker count, language, budget, speed), so the CI and bands change with the slice instead of just hiding rows.</li>
+<li><b>Each row:</b> rank band, system with version and config, DER with a CI bar, a small stacked bar of missed / false alarm / confusion, JER, count accuracy, overlap DER, speed, cost. Tier separators make ties obvious.</li>
+<li><b>A side panel</b> for the selected system: error parts, DER by condition, and "listen to where it fails" clips.</li>
+<li><b>A plain-language callout</b> for the user's own use case ("these two are tied at the top; choose on cost").</li>
+</ul>
+<img class="full" src="../../leaderboard/leaderboard_sketch.png" alt="Leaderboard sketch">
+
+<!-- ============================================================ -->
+<h2 id="reflection"><span class="n">8</span>Final reflection</h2>
+
+<h3>1. Which design choice am I least sure about, and why?</h3>
+<p><b>Using a collar of 0 s as the primary setting.</b> I believe it is right for the users, but it makes the score depend on how annotators place boundaries. If our annotators systematically start segments 80 ms earlier than a system's speech detector does, every system pays a small penalty that has nothing to do with "who spoke when". Forced alignment and double annotation reduce this, but the pilot showed the stakes: a 0.25 s collar alone removed 4 points of the best system's 32-point DER, more than skipping overlap did. Some of that is real error on short turns and some is boundary jitter, and I cannot yet say how much of each. I would want to measure the share of collar-0 DER that sits within ±0.1 s of a reference boundary and publish it next to the score. A close second: giving the language code to every system. It is realistic, but it slightly favours STT-based systems that use language to choose models.</p>
+
+<h3>2. Which benchmark influenced me most, and how?</h3>
+<p><b>DIHARD III</b> (Ryant et al.). Three ideas came from it directly: scoring with no collar and with overlap, because real audio has both; reporting by domain instead of one pooled number, because systems that win on one domain lose on another; and pairing DER with JER so minority speakers are not invisible. The second biggest influence was <b>AMI / AliMeeting / CHiME</b> for the data side: recording every speaker on a close-talk channel alongside the far-field device is the single best way to get a trustworthy reference in overlap, and it lets one recording produce several conditions. VoxConverse showed me why speaker count must be unknown (its files range from one to over twenty speakers), and the CHiME-8 DASR habit of macro-averaging across scenarios is where my "Overall = plain mean of tracks" comes from.</p>
+
+<h3>3. What could make the leaderboard misleading, and how did I guard against it?</h3>
+<table>
+<thead><tr><th style="width:32%">Risk</th><th>Guard</th></tr></thead>
+<tbody>
+<tr><td>Fake precision: ranking on noise</td><td>Recording-level paired bootstrap, practical floor, rank bands instead of strict ranks</td></tr>
+<tr><td>One number hiding the use case</td><td>Track tabs as the default view; overall is a macro-average, never weighted by hours</td></tr>
+<tr><td>Settings that flatter systems</td><td>Collar 0, overlap scored, count unknown, own SAD; legacy numbers exported but never ranked</td></tr>
+<tr><td>Test data in training sets</td><td>New hidden recordings, zero-retention APIs, canaries, yearly 20% refresh; public sets only as unranked anchors</td></tr>
+<tr><td>Wrong reference labels</td><td>Close-talk channels, 20% double annotation, IAA as noise floor, "systems agree, label disagrees" audit, versioned references</td></tr>
+<tr><td>Silent API changes</td><td>Version + date on every row, monthly drift probe, re-run on drift</td></tr>
+<tr><td>Vendor tuning to the test</td><td>Configs declared before testing; no test feedback beyond the final score; private preview only for bug reports</td></tr>
+<tr><td>Output-format bias against STT systems</td><td>Published word-to-segment rule plus WDER</td></tr>
+<tr><td>Hiding failures</td><td>Failed files count as 100% missed; failure rate shown</td></tr>
+</tbody>
+</table>
+
+<h3>4. What would I improve with more time?</h3>
+<ul>
+<li><b>Run the pilot on the real launch list</b>, including at least two commercial APIs and a GPU end-to-end model (Sortformer or DiariZen), on more files, so recording-level bootstrap is possible.</li>
+<li><b>Calibrate the practical-significance floor</b> against measured inter-annotator DER per track, instead of a fixed 0.5 points.</li>
+<li><b>Validate the metric with users:</b> show product teams pairs of transcripts with different DER/JER and check which errors they actually care about (for example, is merging two speakers worse than splitting one?). If users mind some errors much more, the headline metric should weight them.</li>
+<li><b>A Hinglish and Indian-language pilot</b> with a small recorded set, since that is the part of the design with the least public evidence behind it.</li>
+<li><b>Build the live table properly</b>: a streaming harness, latency measurement and a "how much worse is live than offline" view.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="refs">What I read</h2>
+<ul class="refs">
+<li>Ryant et al., <i>The Third DIHARD Diarization Challenge</i>, arXiv:2012.01477. Domains, collar 0, overlap scored, DER + JER, two tracks (oracle vs system speech detection).</li>
+<li>Park et al., <i>A Review of Speaker Diarization: Recent Advances with Deep Learning</i>, arXiv:2101.09624. Taxonomy of modular vs end-to-end systems; how datasets and settings differ across papers.</li>
+<li>AMI Meeting Corpus (groups.inf.ed.ac.uk/ami/corpus) and the pyannote AMI-diarization-setup (word-aligned "only_words" references, Mix-Headset vs Array1-01 conditions).</li>
+<li>ICSI Meeting Corpus; AliMeeting / M2MeT (openslr.org/119): far-field + headset recording of the same meeting.</li>
+<li>VoxConverse (github.com/joonson/voxconverse): in-the-wild multi-speaker video, wide range of speaker counts.</li>
+<li>CALLHOME American English (LDC97S42): two-party telephone speech, and why results on it are usually quoted with a 0.25 s collar.</li>
+<li>CHiME-8 Task 1 (DASR): multiple scenarios, macro-averaged ranking, tcpWER.</li>
+<li>dscore (github.com/nryant/dscore), pyannote.metrics, MeetEval (cpWER, tcpWER).</li>
+</ul>
+
+</body>
+</html>

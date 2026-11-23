@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Amartya Singh · Q1 One-pager</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  @page { size: A4; margin: 10mm 11mm; }
+  body { font-size: 8.55pt; line-height: 1.36; }
+  h1 { font-size: 17pt; margin: 0 0 1pt; line-height: 1.15; }
+  .meta { color: var(--muted); font-size: 8pt; margin-bottom: 5pt; }
+  h3 { font-size: 9.6pt; margin: 6pt 0 2.5pt; font-family: Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+  ul { padding-left: 12pt; margin: 0 0 3pt; }
+  li { margin: 1.2pt 0; }
+  p { margin: 0 0 3pt; }
+  .cols { display: grid; grid-template-columns: 1.05fr 1fr; gap: 12pt; }
+  table { font-size: 7.9pt; margin: 2pt 0 4pt; }
+  th { font-size: 7pt; padding: 2pt 4pt; }
+  td { padding: 2pt 4pt; }
+  .take { border: 1.5px solid var(--ink); border-radius: 6px; padding: 5pt 9pt; margin-top: 5pt; background: #fbfbf8; }
+  .take b { color: var(--accent); }
+  .eval { background: var(--soft); border-radius: 6px; padding: 5pt 9pt; margin-bottom: 4pt; }
+</style>
+</head>
+<body>
+<h1>A diarization leaderboard buyers can trust</h1>
+<div class="meta">Amartya Singh · Voice Arena take-home, Q1 · one-page summary · full design in Amartya_Singh_Q1_Main.pdf · code &amp; results: github.com/amartya1523/voice-arena-diarization-eval</div>
+
+<div class="eval"><b>The eval in one sentence:</b> rank speaker diarization systems ("who spoke when") separately for meetings, phone calls, clinical consults, media and noisy field audio, on 60 hours of new hidden recordings, by DER scored the way products experience it (no collar, overlap counted, speaker count unknown), with confidence intervals and rank bands so a buyer never picks a "winner" that only won by chance.</div>
+
+<div class="cols">
+<div>
+<h3>Who it serves</h3>
+<ul>
+<li><b>Product teams</b> picking an API/model for meeting notes, call analytics, scribes, subtitles.</li>
+<li><b>Model builders</b> who need to know <i>where</i> they fail (per condition, per error type).</li>
+<li><b>Non-technical buyers</b> who need a shortlist: "these two are tied, choose on price".</li>
+</ul>
+
+<h3>Core setup</h3>
+<ul>
+<li><b>Systems:</b> 15 at launch across 6 types: open pipelines (pyannote community-1 / 3.1, 3D-Speaker), end-to-end open (NVIDIA Sortformer, DiariZen), diarization API (pyannoteAI Precision-2), STT APIs with speaker labels (Deepgram Nova-3, AssemblyAI, AWS Transcribe, Google Chirp 3, Azure, Speechmatics, ElevenLabs Scribe, OpenAI gpt-4o-transcribe-diarize), live and on-device.</li>
+<li><b>Data:</b> 60 h hidden test + 9 h public dev; 5 tracks; 430+ speakers; English accents + Hindi, Hinglish, Tamil, Bengali, Marathi; laptop, room array, PSTN/VoIP, speakerphone, car.</li>
+<li><b>Reference:</b> every speaker also recorded on a close-talk mic; forced alignment + human correction; 20% double-annotated; inter-annotator DER is the noise floor; "systems agree, label disagrees" audit.</li>
+<li><b>Fairness:</b> same file to all, language given, count not given, configs declared before testing, versions pinned and re-checked monthly, failures = 100% missed.</li>
+</ul>
+
+<h3>Metrics</h3>
+<ul>
+<li><b>Primary:</b> DER = (missed + false alarm + speaker confusion) ÷ speech time, collar 0, overlap scored, system's own speech detection. Pooled per track; Overall = plain mean of tracks.</li>
+<li><b>Beside it:</b> DER parts, JER (each speaker counts equally), speaker-count accuracy, overlap DER, short-turn recall, WDER for STT systems, speed, $/hour, failure rate.</li>
+<li><b>Winning for real:</b> paired bootstrap over recordings; A beats B only if the 95% CI of the gap excludes 0 and the gap ≥ 0.5 pt (Holm-corrected) → rank bands like "1–2".</li>
+</ul>
+</div>
+
+<div>
+<h3>Most important design choices</h3>
+<table>
+<thead><tr><th>Choice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td><b>Per-use-case tracks</b>, no single winner by default</td><td>A system best on clean podcasts can be poor on 8 kHz calls; one number misleads most users.</td></tr>
+<tr><td><b>Collar 0 + overlap scored</b></td><td>The legacy setting hides short turns and crosstalk, the errors users notice. Legacy DER exported, never ranked.</td></tr>
+<tr><td><b>Count unknown</b> in the rank</td><td>No product knows who will join. Hinted results shown in a side column.</td></tr>
+<tr><td><b>Rank bands</b>, not ranks</td><td>Ties are real; fake precision drives bad purchases.</td></tr>
+<tr><td><b>New hidden data</b>, public sets only as anchors</td><td>AMI/VoxConverse are likely in training data.</td></tr>
+</tbody>
+</table>
+
+<h3>Pilot (run on a laptop)</h3>
+<p>{{pilot_line}}</p>
+<table>
+<thead><tr><th>System (pyannote-seg-3.0 +)</th><th class="r">DER</th><th class="r">95% CI</th><th class="r">Close</th><th class="r">Far</th><th class="r">Phone</th></tr></thead>
+<tbody>
+{{pilot_rows}}
+</tbody>
+</table>
+<ul>
+{{pilot_bullets}}
+</ul>
+</div>
+</div>
+
+<div class="take"><b>Main takeaway:</b> {{takeaway}}</div>
+</body>
+</html>
