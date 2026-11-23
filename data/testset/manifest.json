@@ -1,0 +1,66 @@
+[
+  {
+    "uri": "IS1009a",
+    "source": "AMI",
+    "condition": "close_talk",
+    "start": 0.0,
+    "end": 838.0,
+    "speakers": 4
+  },
+  {
+    "uri": "IS1009a",
+    "source": "AMI",
+    "condition": "far_field",
+    "start": 0.0,
+    "end": 838.0,
+    "speakers": 4
+  },
+  {
+    "uri": "IS1009a",
+    "source": "AMI",
+    "condition": "phone_line",
+    "start": 0.0,
+    "end": 838.0,
+    "speakers": 4
+  },
+  {
+    "uri": "TS3003a",
+    "source": "AMI",
+    "condition": "close_talk",
+    "start": 300.0,
+    "end": 900.0,
+    "speakers": 4
+  },
+  {
+    "uri": "TS3003a",
+    "source": "AMI",
+    "condition": "far_field",
+    "start": 300.0,
+    "end": 900.0,
+    "speakers": 4
+  },
+  {
+    "uri": "TS3003a",
+    "source": "AMI",
+    "condition": "phone_line",
+    "start": 300.0,
+    "end": 900.0,
+    "speakers": 4
+  },
+  {
+    "uri": "fzwtp",
+    "source": "VoxConverse",
+    "condition": "close_talk",
+    "start": 0.0,
+    "end": 285.0,
+    "speakers": 11
+  },
+  {
+    "uri": "bjruf",
+    "source": "VoxConverse",
+    "condition": "close_talk",
+    "start": 0.0,
+    "end": 360.0,
+    "speakers": 2
+  }
+]
