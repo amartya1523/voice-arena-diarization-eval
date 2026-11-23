@@ -6,12 +6,12 @@
 
 Amartya Singh · Voice Arena take-home, Question 1 · November 2026
 
-[**Watch the 2-minute walkthrough**](deliverables/Amartya_Singh_Q1_Video_Walkthrough.mp4) ·
+[**Watch the 2-minute walkthrough**](https://drive.google.com/file/d/1oqV5XZGkSmuHHws-0X7mPEQOUTR-k5VG/view?usp=sharing) ([mp4 in repo](deliverables/Amartya_Singh_Q1_Video_Walkthrough.mp4)) ·
 [Main document (PDF)](deliverables/Amartya_Singh_Q1_Main.pdf) ·
 [One-pager (PDF)](deliverables/Amartya_Singh_Q1_OnePager.pdf) ·
 [Leaderboard sketch](deliverables/Amartya_Singh_Q1_Leaderboard_Sketch.png)
 
-[![Video walkthrough](docs/media/video_thumb.jpg)](deliverables/Amartya_Singh_Q1_Video_Walkthrough.mp4)
+[![Video walkthrough](docs/media/video_thumb.jpg)](https://drive.google.com/file/d/1oqV5XZGkSmuHHws-0X7mPEQOUTR-k5VG/view?usp=sharing)
 
 </div>
 
@@ -62,7 +62,7 @@ What it taught me:
 | 1 | Main document (purpose, models, data, metrics, process, pilot, final reflection) | [`Amartya_Singh_Q1_Main.pdf`](deliverables/Amartya_Singh_Q1_Main.pdf) |
 | 2 | One-page report | [`Amartya_Singh_Q1_OnePager.pdf`](deliverables/Amartya_Singh_Q1_OnePager.pdf) |
 | 3 | Leaderboard sketch (PNG + HTML mockup) | [`Amartya_Singh_Q1_Leaderboard_Sketch.png`](deliverables/Amartya_Singh_Q1_Leaderboard_Sketch.png) · [`leaderboard/index.html`](leaderboard/index.html) |
-| 4 | Video walkthrough (under 2 min) | [`Amartya_Singh_Q1_Video_Walkthrough.mp4`](deliverables/Amartya_Singh_Q1_Video_Walkthrough.mp4) |
+| 4 | Video walkthrough (1:56) | [Google Drive](https://drive.google.com/file/d/1oqV5XZGkSmuHHws-0X7mPEQOUTR-k5VG/view?usp=sharing) · [`Amartya_Singh_Q1_Video_Walkthrough.mp4`](deliverables/Amartya_Singh_Q1_Video_Walkthrough.mp4) |
 | + | Pilot code, references, raw RTTM outputs, per-file scores | [`eval/`](eval) · [`results/`](results) |
 
 ![Leaderboard sketch](deliverables/Amartya_Singh_Q1_Leaderboard_Sketch.png)
