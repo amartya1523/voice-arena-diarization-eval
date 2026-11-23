@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Arena · Diarization Leaderboard (sketch)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5f1; --card:#ffffff; --ink:#16181d; --muted:#6b6f78; --line:#e4e2dc;
+    --accent:#1d4ed8; --accent-soft:#e8eefc;
+    --miss:#e0a526; --fa:#7c8aa5; --conf:#d1495b;
+    --good:#15803d; --warn:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  header{display:flex;align-items:center;gap:16px;padding:18px 32px;border-bottom:1px solid var(--line);background:var(--card)}
+  .logo{font-weight:700;letter-spacing:-.02em;font-size:18px}
+  .logo span{color:var(--accent)}
+  nav a{color:var(--muted);text-decoration:none;margin-right:18px;font-weight:500}
+  nav a.on{color:var(--ink)}
+  .sample{margin-left:auto;font-size:12px;background:#fff4d6;border:1px solid #f1d58a;color:#7a5600;padding:4px 10px;border-radius:999px}
+  main{padding:24px 32px 40px;max-width:1720px;margin:0 auto}
+  h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .tracks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .track{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:10px;font-weight:500;cursor:pointer}
+  .track small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
+  .track.on{border-color:var(--accent);background:var(--accent-soft)}
+  .layout{display:grid;grid-template-columns:230px minmax(0,1fr) 320px;gap:18px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .filters{padding:16px}
+  .filters h3,.side h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px}
+  .filters h3:first-child{margin-top:0}
+  .chk{display:flex;align-items:center;gap:8px;margin:5px 0}
+  .chk i{width:14px;height:14px;border:1.5px solid #9aa0aa;border-radius:4px;display:inline-block}
+  .chk i.on{background:var(--accent);border-color:var(--accent)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg span{flex:1;text-align:center;padding:5px 0;font-size:12.5px}
+  .seg span.on{background:var(--ink);color:#fff}
+  table{width:100%;border-collapse:collapse}
+  thead th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;font-weight:600;padding:12px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr.sel{background:#fafbff;box-shadow:inset 3px 0 0 var(--accent)}
+  .band{font-weight:700;font-size:13px;background:#eef0f3;border-radius:6px;padding:3px 7px;white-space:nowrap}
+  .sys b{display:block}
+  .sys small{color:var(--muted)}
+  .badge{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-left:4px;white-space:nowrap}
+  .badge.live{border-color:#c7d7fb;color:var(--accent)}
+  .der{font-weight:700;font-size:15px}
+  .ci{position:relative;height:6px;background:#eef0f3;border-radius:3px;width:120px;margin-top:5px}
+  .ci .r{position:absolute;top:0;height:6px;background:#9db3f0;border-radius:3px}
+  .ci .p{position:absolute;top:-2px;width:2px;height:10px;background:var(--ink)}
+  .cil{font-size:11px;color:var(--muted)}
+  .stack{display:flex;height:10px;width:110px;border-radius:3px;overflow:hidden;background:#eef0f3}
+  .stack span{display:block;height:100%}
+  .num{font-variant-numeric:tabular-nums}
+  .warnc{color:var(--warn)}
+  .side{padding:16px}
+  .side h2{font-size:16px;margin:0}
+  .side .meta{color:var(--muted);font-size:12px;margin:2px 0 10px}
+  .kv{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px}
+  .kv span:nth-child(odd){color:var(--muted)}
+  .bars .row{display:grid;grid-template-columns:92px 1fr 44px;gap:8px;align-items:center;margin:6px 0;font-size:12.5px}
+  .bars .bar{height:8px;background:#eef0f3;border-radius:4px;overflow:hidden}
+  .bars .bar i{display:block;height:100%;background:var(--ink)}
+  .clip{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:12.5px}
+  .clip .tl{display:flex;height:14px;margin:6px 0 2px;border-radius:3px;overflow:hidden}
+  .legend{display:flex;gap:12px;font-size:11.5px;color:var(--muted);margin:10px 12px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+  .foot{padding:12px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap}
+  .foot b{color:var(--ink)}
+  .note{font-size:12px;color:var(--muted);margin-top:14px}
+  .tierline td{padding:4px 10px;font-size:11px;color:var(--muted);background:#fbfaf7;letter-spacing:.04em;text-transform:uppercase}
+  .callout{background:#f3f6ff;border:1px solid #d6e0fb;border-radius:10px;padding:10px 12px;font-size:12.5px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">voice<span>arena</span></div>
+  <nav><a href="#">ASR</a><a class="on" href="#">Diarization</a><a href="#">TTS</a><a href="#">Methodology</a><a href="#">Datasets</a></nav>
+  <div class="sample">Design sketch · numbers are placeholders, not measurements</div>
+</header>
+<main>
+  <h1>Who spoke when: speaker diarization leaderboard</h1>
+  <p class="sub">Hidden test set v1.0 · 62.4 h · 431 speakers · 6 languages · last full re-run 1 Nov 2026 · scored with collar 0 s, overlap included, speaker count unknown</p>
+
+  <div class="tracks">
+    <div class="track">Overall<small>macro-average of 5 tracks</small></div>
+    <div class="track on">Meetings<small>20 h · 3–10 speakers</small></div>
+    <div class="track">Phone &amp; contact centre<small>15 h · 8 kHz · 2–3 spk</small></div>
+    <div class="track">Clinical consults<small>8 h · 2–4 spk</small></div>
+    <div class="track">Media &amp; podcasts<small>10 h · 1–15 spk</small></div>
+    <div class="track">Field &amp; mobile<small>7 h · noisy, speakerphone</small></div>
+    <div class="track">Live / streaming<small>separate table · latency</small></div>
+  </div>
+
+  <div class="layout">
+    <aside class="card filters">
+      <h3>System type</h3>
+      <div class="chk"><i class="on"></i>Open source, self-hosted</div>
+      <div class="chk"><i class="on"></i>Diarization API</div>
+      <div class="chk"><i class="on"></i>Speech-to-text + speakers</div>
+      <div class="chk"><i></i>On-device</div>
+      <h3>Condition</h3>
+      <div class="chk"><i class="on"></i>Close-talk / laptop</div>
+      <div class="chk"><i class="on"></i>Far-field room</div>
+      <div class="chk"><i class="on"></i>Phone line</div>
+      <h3>Speakers in recording</h3>
+      <div class="seg"><span>2</span><span class="on">3–5</span><span>6+</span><span>All</span></div>
+      <h3>Language</h3>
+      <div class="chk"><i class="on"></i>English (all accents)</div>
+      <div class="chk"><i class="on"></i>Hindi</div>
+      <div class="chk"><i class="on"></i>Hinglish (code-switched)</div>
+      <div class="chk"><i></i>Tamil · Bengali · Marathi</div>
+      <h3>Sort by</h3>
+      <div class="seg"><span class="on">DER</span><span>JER</span><span>Cost</span></div>
+      <h3>Budget</h3>
+      <div class="chk"><i></i>≤ $0.50 per audio hour</div>
+      <div class="chk"><i></i>Runs faster than 0.1× real time</div>
+      <p class="note">Filters re-score from per-file results, so CIs and rank bands update with the slice.</p>
+    </aside>
+
+    <section class="card">
+      <div class="legend"><span><i style="background:var(--miss)"></i>Missed speech</span><span><i style="background:var(--fa)"></i>False alarm</span><span><i style="background:var(--conf)"></i>Speaker confusion</span><span style="margin-left:auto">Rank band = systems whose difference is not significant (paired bootstrap, 95%, Holm)</span></div>
+      <table>
+        <thead><tr><th>Band</th><th>System</th><th>DER ↓ (95% CI)</th><th>Error mix</th><th>JER</th><th>Count right</th><th>Overlap DER</th><th>Speed</th><th>$ / audio h</th></tr></thead>
+        <tbody>
+          <tr class="tierline"><td colspan="9">Tier 1 · statistically tied</td></tr>
+          <tr class="sel"><td><span class="band">1–2</span></td><td class="sys"><b>Diarization API · Model P-2</b><small>Vendor P · v2026-10 · default config</small><span class="badge">API</span></td>
+            <td><div class="der num">11.8%</div><div class="ci"><div class="r" style="left:16%;width:15%"></div><div class="p" style="left:23%"></div></div><div class="cil num">10.6 – 13.1</div></td>
+            <td><div class="stack"><span style="width:28%;background:var(--miss)"></span><span style="width:12%;background:var(--fa)"></span><span style="width:22%;background:var(--conf)"></span></div></td>
+            <td class="num">19.4%</td><td class="num">71%</td><td class="num">31.0%</td><td class="num">0.02×</td><td class="num">$0.36</td></tr>
+          <tr><td><span class="band">1–2</span></td><td class="sys"><b>Open EEND pipeline · W-Large</b><small>Open source · commit 4f1c2a · GPU L4</small><span class="badge">Self-hosted</span></td>
+            <td><div class="der num">12.6%</div><div class="ci"><div class="r" style="left:18%;width:16%"></div><div class="p" style="left:25%"></div></div><div class="cil num">11.3 – 14.0</div></td>
+            <td><div class="stack"><span style="width:25%;background:var(--miss)"></span><span style="width:14%;background:var(--fa)"></span><span style="width:26%;background:var(--conf)"></span></div></td>
+            <td class="num">21.0%</td><td class="num">64%</td><td class="num">28.7%</td><td class="num">0.05×</td><td class="num">$0.09*</td></tr>
+          <tr class="tierline"><td colspan="9">Tier 2</td></tr>
+          <tr><td><span class="band">3–5</span></td><td class="sys"><b>STT API · Model D-3</b><small>Vendor D · diarize=true · word-level output</small><span class="badge">STT + speakers</span><span class="badge live">also live</span></td>
+            <td><div class="der num">15.9%</div><div class="ci"><div class="r" style="left:25%;width:17%"></div><div class="p" style="left:33%"></div></div><div class="cil num">14.3 – 17.6</div></td>
+            <td><div class="stack"><span style="width:30%;background:var(--miss)"></span><span style="width:8%;background:var(--fa)"></span><span style="width:42%;background:var(--conf)"></span></div></td>
+            <td class="num">27.2%</td><td class="num">52%</td><td class="num">58.1%</td><td class="num">0.01×</td><td class="num">$0.26</td></tr>
+          <tr><td><span class="band">3–5</span></td><td class="sys"><b>Open pipeline · Seg-3 + ResNet34</b><small>Open source · v3.1 · CPU 8-core</small><span class="badge">Self-hosted</span></td>
+            <td><div class="der num">16.4%</div><div class="ci"><div class="r" style="left:26%;width:17%"></div><div class="p" style="left:34%"></div></div><div class="cil num">14.8 – 18.2</div></td>
+            <td><div class="stack"><span style="width:24%;background:var(--miss)"></span><span style="width:13%;background:var(--fa)"></span><span style="width:45%;background:var(--conf)"></span></div></td>
+            <td class="num">25.1%</td><td class="num">48%</td><td class="num">33.9%</td><td class="num">0.18×</td><td class="num">$0.04*</td></tr>
+          <tr><td><span class="band">3–5</span></td><td class="sys"><b>STT API · Model A-U2</b><small>Vendor A · speaker_labels on</small><span class="badge">STT + speakers</span></td>
+            <td><div class="der num">17.1%</div><div class="ci"><div class="r" style="left:28%;width:17%"></div><div class="p" style="left:35%"></div></div><div class="cil num">15.5 – 18.9</div></td>
+            <td><div class="stack"><span style="width:34%;background:var(--miss)"></span><span style="width:6%;background:var(--fa)"></span><span style="width:40%;background:var(--conf)"></span></div></td>
+            <td class="num">28.8%</td><td class="num">55%</td><td class="num">61.4%</td><td class="num">0.03×</td><td class="num">$0.37</td></tr>
+          <tr class="tierline"><td colspan="9">Tier 3</td></tr>
+          <tr><td><span class="band">6</span></td><td class="sys"><b>Cloud STT · Model G-C</b><small>Vendor G · min 1 / max 10 speakers</small><span class="badge">STT + speakers</span></td>
+            <td><div class="der num">24.3%</div><div class="ci"><div class="r" style="left:41%;width:19%"></div><div class="p" style="left:50%"></div></div><div class="cil num">22.4 – 26.6</div></td>
+            <td><div class="stack"><span style="width:30%;background:var(--miss)"></span><span style="width:9%;background:var(--fa)"></span><span style="width:61%;background:var(--conf)"></span></div></td>
+            <td class="num">38.0%</td><td class="num warnc">29%</td><td class="num">66.0%</td><td class="num">0.04×</td><td class="num">$0.96</td></tr>
+        </tbody>
+      </table>
+      <div class="foot"><span><b>Failure rate</b> shown on hover (timeouts count as 100% missed)</span><span><b>*</b> self-hosted cost = GPU/CPU rental at list price</span><span><b>Legacy DER</b> (0.25 s collar, overlap skipped) available in export only</span><span><b>Download</b> per-file CSV · RTTMs · configs</span></div>
+    </section>
+
+    <aside class="card side">
+      <div class="callout"><b>For your use case:</b> 4–6 person hybrid meetings, English + Hinglish, laptop mics. Tier 1 systems are tied here; pick on cost and deployment.</div>
+      <h2>Diarization API · Model P-2</h2>
+      <div class="meta">Version 2026-10 · run 1 Nov 2026 · config hash <span class="mono">a91f…3c</span></div>
+      <div class="kv">
+        <span>Missed speech</span><span class="num">3.3%</span>
+        <span>False alarm</span><span class="num">1.4%</span>
+        <span>Speaker confusion</span><span class="num">7.1%</span>
+        <span>Speaker count exact</span><span class="num">71% of files</span>
+        <span>Short turns (&lt;1 s) found</span><span class="num">58%</span>
+        <span>Failed / timed-out files</span><span class="num">0 / 214</span>
+      </div>
+      <h3>DER by condition</h3>
+      <div class="bars">
+        <div class="row"><span>Close-talk</span><div class="bar"><i style="width:30%"></i></div><span class="num">8.9%</span></div>
+        <div class="row"><span>Far-field</span><div class="bar"><i style="width:47%"></i></div><span class="num">14.2%</span></div>
+        <div class="row"><span>Phone line</span><div class="bar"><i style="width:40%"></i></div><span class="num">12.1%</span></div>
+        <div class="row"><span>6+ speakers</span><div class="bar"><i style="width:63%"></i></div><span class="num">18.8%</span></div>
+        <div class="row"><span>Hinglish</span><div class="bar"><i style="width:44%"></i></div><span class="num">13.3%</span></div>
+      </div>
+      <h3>Listen to where it fails</h3>
+      <div class="clip"><b>Backchannel swallowed</b> · meeting · 00:14:02
+        <div class="tl"><span style="width:55%;background:#cfd8ea"></span><span style="width:8%;background:var(--conf)"></span><span style="width:37%;background:#e8d8b8"></span></div>
+        <span style="color:var(--muted)">"mm-hm" from speaker 3 merged into speaker 1 ▶ 6 s clip</span></div>
+      <div class="clip"><b>Two similar voices merged</b> · meeting · 00:41:37
+        <div class="tl"><span style="width:40%;background:#cfd8ea"></span><span style="width:60%;background:var(--conf)"></span></div>
+        <span style="color:var(--muted)">same-gender, same-accent pair labelled as one ▶ 10 s clip</span></div>
+    </aside>
+  </div>
+</main>
+</body>
+</html>
